@@ -9,7 +9,8 @@ Compilation of programs for various topics in AutoML using the Ray framework fro
 - `pytorch_hparams.py`  
 -- classic example of finding optimal hyperparameters for simple mnist classifying CNN
 - `naive_pytorch_nas.py`  
--- very simple example of naive neural architecture search with simple mnist classifying CNN
+-- very simple example of naive neural architecture search with simple mnist classifying CNN  
+-- naive because this is effectively just another hyperparameter sweep, not actual architecture search
 
 ## References
 

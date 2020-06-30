@@ -1,5 +1,5 @@
 """
-Example of using ray tune to find the optimal hyperparameters for training a simple CNN to classify mnist
+Example of using ray tune to find the optimal CNN architecture for mnist classification task
 """
 
 import os, json, argparse, random, math, time
@@ -25,14 +25,24 @@ PADDING = 0
 DILATION = 1
 
 class Net(nn.Module):
-    def __init__(self):
+    def __init__(self, net_config):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)
-        self.max_pool1 = nn.MaxPool2d(2)
+
+        self.conv1 = nn.Conv2d(1, net_config["c1_filter_num"], net_config["c1_filter_size"], net_config["c1_filter_stride"])
+        conv1_output_size = math.floor((IM_SIZE + 2 * PADDING - DILATION * (net_config["c1_filter_size"] - 1) - 1) / net_config["c1_filter_stride"] + 1)
+        conv1_out_channels = net_config["c1_filter_num"]
+
+        self.conv2 = nn.Conv2d(net_config["c1_filter_num"], net_config["c2_filter_num"], net_config["c2_filter_size"], net_config["c2_filter_stride"])
+        conv2_output_size = math.floor((conv1_output_size + 2 * PADDING - DILATION * (net_config["c2_filter_size"] - 1) - 1) / net_config["c2_filter_stride"] + 1)
+        conv2_out_channels = net_config["c2_filter_num"]
+
+        self.max_pool1 = nn.MaxPool2d(net_config["max_pool_kernel"])
+        max_pool_output_size = math.floor((conv2_output_size + (2 * PADDING) - DILATION * (net_config["max_pool_kernel"] - 1) - 1) / net_config["max_pool_kernel"] + 1)
+        max_pool_out_channels = conv2_out_channels
+
         self.dropout1 = nn.Dropout2d(0.25)
         self.dropout2 = nn.Dropout2d(0.5)
-        self.fc1 = nn.Linear(9216, 128)
+        self.fc1 = nn.Linear(max_pool_out_channels * max_pool_output_size * max_pool_output_size, 128)
         self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x):
@@ -111,7 +121,7 @@ class MyTrainableClass(Trainable):
         self.batch_size = config["batch_size"]
         self.train_loader, self.test_loader = get_data_loaders()
         self.lr = config["lr"]
-        self.model = Net().to(self.device)
+        self.model = Net(config).to(self.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
         self.timestep = 0
 
@@ -143,7 +153,7 @@ class MyTrainableClass(Trainable):
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
-parser = argparse.ArgumentParser("PyTorch Hyperparameter Sweep Test")
+parser = argparse.ArgumentParser()
 parser.add_argument("--use-gpu", action="store_true", default=False, help="enables CUDA training")
 parser.add_argument("--ray-address", type=str, help="The Redis address of the cluster.")
 parser.add_argument("--smoke-test", action="store_true", help="Finish quickly for testing")
@@ -174,7 +184,14 @@ analysis = tune.run(MyTrainableClass,
     config={
         "args": args,
         "batch_size": tune.sample_from(lambda _: int(np.random.random_integers(1, high=64))),
-        "lr": tune.sample_from(lambda _: 10.0**np.random.random_integers(-4, high=4))
+        "lr": tune.sample_from(lambda _: 10.0**np.random.random_integers(-2, high=2)),
+        "c1_filter_num": tune.sample_from(lambda _: int(np.random.random_integers(1, high=64))),
+        "c1_filter_size": tune.sample_from(lambda _: int(np.random.choice([3, 5]))),
+        "c1_filter_stride": tune.sample_from(lambda _: int(np.random.choice([1, 2]))),
+        "c2_filter_num": tune.sample_from(lambda _: int(np.random.random_integers(1, high=64))),
+        "c2_filter_size": tune.sample_from(lambda _: int(np.random.choice([3, 5]))),
+        "c2_filter_stride": tune.sample_from(lambda _: int(np.random.choice([1, 2]))),
+        "max_pool_kernel": tune.sample_from(lambda _: int(np.random.choice([2])))
     },
     reuse_actors=True)
 

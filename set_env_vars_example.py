@@ -1,3 +1,7 @@
+"""
+Example of using ray tune to set different environment variables in each actor process
+"""
+
 import os, json, argparse, random
 
 import numpy as np

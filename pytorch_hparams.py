@@ -1,3 +1,7 @@
+"""
+Example of using ray tune to find the optimal hyperparameters for training a simple CNN to classify mnist
+"""
+
 import os, json, argparse, random
 
 import numpy as np

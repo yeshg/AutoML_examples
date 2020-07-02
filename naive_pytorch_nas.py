@@ -195,4 +195,4 @@ analysis = tune.run(MyTrainableClass,
     },
     reuse_actors=True)
 
-print("Best config is:", analysis.get_best_config(metric="test_loss"))
+print("Best config is:", analysis.get_best_config(metric="test_loss", mode="min"))

@@ -11,6 +11,9 @@ Compilation of programs for various topics in AutoML using the Ray framework fro
 - `naive_pytorch_nas.py`  
 -- very simple example of naive neural architecture search with simple mnist classifying CNN  
 -- naive because this is effectively just another hyperparameter sweep, not actual architecture search
+- `tune_resnet50.py`  
+-- tuning inference time for resnet50 with imagenet weights.  
+-- uses Intel Optimized tensorflow
 
 ## References
 

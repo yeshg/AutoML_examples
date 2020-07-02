@@ -106,7 +106,7 @@ class MyTrainableClass(Trainable):
 parser = argparse.ArgumentParser("PyTorch Hyperparameter Sweep Test")
 parser.add_argument("--ray-address", type=str, help="The Redis address of the cluster.")
 parser.add_argument("--smoke-test", action="store_true", help="Finish quickly for testing")
-parser.add_argument("--num_samples", default=100, help="number of samples for ray tune")
+parser.add_argument("--num_samples", type=int, default=100, help="number of samples for ray tune")
 args = parser.parse_args()
 
 ray.init(address=args.ray_address, num_cpus=6 if args.smoke_test else None)
